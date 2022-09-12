@@ -1,0 +1,110 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type User {
+  id: String!
+  username: String!
+  password: String!
+  collections: [Collection!]!
+}
+
+type Header {
+  id: String!
+  name: String!
+  value: String!
+  request: RequestData!
+}
+
+type RequestData {
+  id: String!
+  name: String!
+  description: String!
+  method: RequestMethods!
+  body: String
+  headers: [Header!]
+  collection: Collection
+}
+
+enum RequestMethods {
+  GET
+  POST
+  PUT
+  DELETE
+}
+
+type Collection {
+  id: String!
+  name: String!
+  description: String!
+  users: [User!]!
+  requests: [RequestData!]!
+}
+
+type FieldError {
+  field: String!
+  message: String!
+}
+
+type CollectionResponse {
+  errors: [FieldError!]
+  collection: Collection
+  users: [User!]!
+  requests: [RequestData!]!
+}
+
+type RequestDataResponse {
+  errors: [FieldError!]
+  request: RequestData
+}
+
+type UserResponse {
+  errors: [FieldError!]
+  user: User
+}
+
+type Query {
+  helloWorld: String!
+  me: User
+  userCollections: [Collection!]!
+  collectionByName(collectionName: String!): CollectionResponse!
+}
+
+type Mutation {
+  register(options: UsernamePasswordInput!): UserResponse!
+  login(options: UsernamePasswordInput!): UserResponse!
+  logout: Boolean!
+  createRequestInCollection(requestData: RequestDataInput!): RequestData!
+  updateHeaders(headers: [HeaderInput!]!, requestId: String!): RequestDataResponse!
+  updateRequest(requestId: String!, requestData: RequestDataInput!): RequestDataResponse!
+  deleteRequest(requestId: String!): RequestDataResponse!
+  createCollection(collectionData: CollectionInput!): CollectionResponse!
+  updateCollection(collectionId: String!, collectionData: CollectionInput!): CollectionResponse!
+  addUserToCollection(username: String!, collectionId: String!): CollectionResponse!
+  removeUserFromCollection(username: String!, collectionId: String!): CollectionResponse!
+  deleteCollection(collectionId: String!): CollectionResponse
+}
+
+input UsernamePasswordInput {
+  username: String!
+  password: String!
+}
+
+input RequestDataInput {
+  name: String!
+  description: String
+  method: RequestMethods!
+  body: String
+  headers: [HeaderInput!]
+  collectionId: String!
+}
+
+input HeaderInput {
+  name: String!
+  value: String!
+}
+
+input CollectionInput {
+  name: String!
+  description: String
+}

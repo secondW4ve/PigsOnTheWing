@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  server:
+    container_name: pigs-on-the-wing-server
+    build:
+      context: ./server
+      dockerfile: dev.Dockerfile
+    logging:
+      options:
+        max-size: 10m
+    command: npm run start:dev
+    environment:
+      - ENV=${env}
+    volumes:
+      - ./server:/app:delegated
+      - /app/node_modules
+    ports:
+      - 8081:8080
+    depends_on:
+      - db
+    networks:
+      - pigs-on-the-wing-network
+
+  db:
+    container_name: pigs-on-the-wing-db
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: app_dev
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pigs-on-the-wing-volume:/var/lib/postgresql/data:z
+    networks:
+      - pigs-on-the-wing-network
+
+  redis:
+    image: redis:alpine
+    command: ['redis-server', '--appendonly', 'yes', '--requirepass', 'redis-pass']
+    ports:
+      - 6379:6379
+    volumes:
+      - pids-on-the-wing-redis-data:/data
+    networks:
+      - pigs-on-the-wing-network
+volumes:
+  pigs-on-the-wing-volume:
+  pids-on-the-wing-redis-data:
+
+networks:
+  pigs-on-the-wing-network:
