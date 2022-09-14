@@ -7,7 +7,7 @@ import { AuthService } from 'src/services/auth.service';
 import { UserService } from 'src/services/user.service';
 import { UserResponse, UsernamePasswordInput } from './user.gql-types';
 
-@Resolver()
+@Resolver(() => User)
 export class UserResolver {
   public constructor(
     private userService: UserService,
@@ -99,7 +99,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  logout(@Context() { req, res }: GqlContext) {
+  logout(@Context() { req, res }: GqlContext): Promise<any> {
     return new Promise((resolve) =>
       req.session.destroy((err) => {
         res.clearCookie(this.appConfigService.cookieName);

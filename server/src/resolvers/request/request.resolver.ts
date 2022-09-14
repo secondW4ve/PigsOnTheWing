@@ -2,17 +2,21 @@ import { Collection } from '@database/entities/collection.entity';
 import { Header } from '@database/entities/header.entity';
 import { RequestData } from '@database/entities/request-data.entity';
 import { ErrorMessages } from '@enums/error-messages.enum';
+import { GqlContext } from '@interfaces/gql.interfaces';
 import {
   Args,
+  Context,
   Mutation,
   Parent,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { FieldError } from '@resolvers/common/common.gql-types';
 import { HeaderInput } from '@resolvers/header/header.gql-types';
 import { CollectionService } from '@services/collection.service';
 import { HeaderService } from '@services/header.service';
 import { RequestDataService } from '@services/request-data.service';
+import { UserService } from '@services/user.service';
 import { RequestDataInput, RequestDataResponse } from './request.gql-types';
 
 @Resolver(() => RequestData)
@@ -20,30 +24,49 @@ export class RequestDataResolver {
   public constructor(
     private requestDataService: RequestDataService,
     private collectionService: CollectionService,
+    private userService: UserService,
     private headerService: HeaderService,
   ) {}
 
-  @ResolveField(() => Collection)
-  async collection(@Parent() { id }: RequestData): Promise<Collection | null> {
-    const collection = await this.collectionService.getByRequestId(id);
-
-    return collection;
-  }
-
-  @ResolveField(() => [Header])
-  async headers(@Parent() { id }: RequestData): Promise<Header[]> {
-    const headers = await this.headerService.getByRequestId(id);
-
-    return headers;
-  }
-
-  @Mutation(() => RequestData)
+  @Mutation(() => RequestDataResponse)
   async createRequestInCollection(
+    @Args('collectionId') collectionId: string,
     @Args('requestData') requestDataInput: RequestDataInput,
-  ): Promise<RequestData> {
-    const requestData = await this.requestDataService.create(requestDataInput);
+    @Context() { req }: GqlContext,
+  ): Promise<RequestDataResponse> {
+    const collection = await this.collectionService.getById(collectionId, true);
+    if (collection === null) {
+      return {
+        errors: [
+          {
+            field: 'collectionId',
+            message: ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST,
+          },
+        ],
+      };
+    }
+    const user = await this.userService.getById(req.session.userId);
 
-    return requestData;
+    try {
+      const request = await this.requestDataService.create(
+        requestDataInput,
+        collection,
+        user,
+      );
+
+      return { request };
+    } catch (err) {
+      if (err instanceof FieldError) {
+        return {
+          errors: [
+            {
+              field: err.field,
+              message: err.message,
+            },
+          ],
+        };
+      }
+    }
   }
 
   @Mutation(() => RequestDataResponse)
@@ -51,7 +74,7 @@ export class RequestDataResolver {
     @Args('headers', { type: () => [HeaderInput] }) headers: HeaderInput[],
     @Args('requestId') requestId: string,
   ): Promise<RequestDataResponse> {
-    const requestData = await this.requestDataService.getById(requestId);
+    const requestData = await this.requestDataService.getById(requestId, true);
     if (requestData === null) {
       return {
         errors: [
@@ -112,5 +135,19 @@ export class RequestDataResolver {
     return {
       request: deletedRequest,
     };
+  }
+
+  @ResolveField(() => Collection)
+  async collection(@Parent() { id }: RequestData): Promise<Collection | null> {
+    const collection = await this.collectionService.getByRequestId(id);
+
+    return collection;
+  }
+
+  @ResolveField(() => [Header])
+  async headers(@Parent() { id }: RequestData): Promise<Header[]> {
+    const headers = await this.headerService.getByRequestId(id);
+
+    return headers;
   }
 }

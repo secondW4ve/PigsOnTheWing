@@ -1,19 +1,15 @@
 import { Header } from '@database/entities/header.entity';
+import { RequestData } from '@database/entities/request-data.entity';
 import { ErrorMessages } from '@enums/error-messages.enum';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  HeaderInput,
-  HeaderInputWithRequest,
-} from '@resolvers/header/header.gql-types';
+import { HeaderInput } from '@resolvers/header/header.gql-types';
 import { Repository } from 'typeorm';
-import { RequestDataService } from './request-data.service';
 
 @Injectable()
 export class HeaderService {
   public constructor(
     @InjectRepository(Header) private headerRepo: Repository<Header>,
-    private requestDataService: RequestDataService,
   ) {}
 
   public async getByRequestId(requestId: string): Promise<Header[]> {
@@ -34,16 +30,15 @@ export class HeaderService {
     return header;
   }
 
-  public async create(headerData: HeaderInputWithRequest): Promise<Header> {
+  public async create(
+    headerData: HeaderInput,
+    request: RequestData,
+  ): Promise<Header> {
     const header = new Header();
     header.name = headerData.name;
     header.value = headerData.value;
-
-    const request = await this.requestDataService.getById(headerData.requestId);
-    if (request === null) {
-      throw new Error(ErrorMessages.REQUEST_WITH_ID_DOES_NOT_EXIST);
-    }
     header.request = request;
+
     return await this.headerRepo.save(header);
   }
 
@@ -63,6 +58,16 @@ export class HeaderService {
     };
 
     return await this.headerRepo.save(updatedHeader);
+  }
+
+  public async removeRequestHeaders(request: RequestData): Promise<void> {
+    await Promise.all(
+      request.headers.map(async (header) => {
+        await this.deleteById(header.id);
+      }),
+    );
+
+    return;
   }
 
   public async deleteById(id: string): Promise<Header | null> {

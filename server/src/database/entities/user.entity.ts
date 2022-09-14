@@ -1,4 +1,4 @@
-import { Column, Entity, Index, ManyToMany } from 'typeorm';
+import { Column, Entity, Index, ManyToMany, OneToMany } from 'typeorm';
 
 import { BaseEntity } from '@database/entities/base.entity';
 import { Collection } from './collection.entity';
@@ -25,7 +25,9 @@ export class User extends BaseEntity {
   })
   password: string;
 
-  @Field(() => [Collection])
+  @OneToMany(() => Collection, (collection) => collection.owner)
+  createdCollections: Collection[];
+
   @ManyToMany(() => Collection, (collection) => collection.users)
   collections: Collection[];
 }

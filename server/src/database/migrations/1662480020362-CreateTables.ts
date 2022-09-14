@@ -7,11 +7,22 @@ export class CreateTables1662480020362 implements MigrationInterface {
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`);
 
     await queryRunner.query(`
+      CREATE TABLE IF NOT EXISTS public.user (
+        id uuid DEFAULT uuid_generate_v4 (),
+        username varchar(255) NOT NULL,
+        "password" varchar(255) NOT NULL,
+        CONSTRAINT user_pkey PRIMARY KEY (id)
+      )
+    `);
+
+    await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS public.collection (
         id uuid DEFAULT uuid_generate_v4 (),
         name varchar(255) NOT NULL,
         description varchar(1000),
-        CONSTRAINT collection_pkey PRIMARY KEY (id)
+        owner_id uuid NOT NULL,
+        CONSTRAINT collection_pkey PRIMARY KEY (id),
+        CONSTRAINT owner_fkey FOREIGN KEY (owner_id) REFERENCES public.user(id) ON DELETE CASCADE 
       )
     `);
 
@@ -45,15 +56,6 @@ export class CreateTables1662480020362 implements MigrationInterface {
         request_id uuid NOT NULL,
         CONSTRAINT header_pkey PRIMARY KEY (id),
         CONSTRAINT request_fkey FOREIGN KEY (request_id) REFERENCES public.request(id) ON DELETE CASCADE
-      )
-    `);
-
-    await queryRunner.query(`
-      CREATE TABLE IF NOT EXISTS public.user (
-        id uuid DEFAULT uuid_generate_v4 (),
-        username varchar(255) NOT NULL,
-        "password" varchar(255) NOT NULL,
-        CONSTRAINT user_pkey PRIMARY KEY (id)
       )
     `);
 

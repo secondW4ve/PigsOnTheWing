@@ -20,9 +20,6 @@ export class RequestDataInput {
 
   @Field(() => [HeaderInput], { nullable: true })
   headers: HeaderInput[];
-
-  @Field(() => String)
-  collectionId: string;
 }
 
 @ObjectType()

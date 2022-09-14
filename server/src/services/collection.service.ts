@@ -4,6 +4,7 @@ import { ErrorMessages } from '@enums/error-messages.enum';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CollectionInput } from '@resolvers/collection/collection.gql-types';
+import { FieldError } from '@resolvers/common/common.gql-types';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -13,11 +14,24 @@ export class CollectionService {
     private collectionRepo: Repository<Collection>,
   ) {}
 
-  public async getById(id: string): Promise<Collection | null> {
+  public async getById(
+    id: string,
+    loadRelations = false,
+  ): Promise<Collection | null> {
+    let relations = {};
+    if (loadRelations) {
+      relations = {
+        users: true,
+        requests: true,
+        owner: true,
+      };
+    }
+
     const collection = await this.collectionRepo.findOne({
       where: {
         id,
       },
+      relations,
     });
 
     return collection;
@@ -52,6 +66,7 @@ export class CollectionService {
     collection.description = collectionData.description;
     collection.requests = null;
     collection.users = [user];
+    collection.owner = user;
 
     return await this.collectionRepo.save(collection);
   }
@@ -59,11 +74,22 @@ export class CollectionService {
   public async update(
     collectionId: string,
     collectionData: CollectionInput,
+    requesterId: string,
   ): Promise<Collection | null> {
     const collectionToUpdate = await this.getById(collectionId);
 
     if (collectionToUpdate === null) {
-      throw new Error(ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST);
+      throw new FieldError(
+        'collectionId',
+        ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST,
+      );
+    }
+
+    if (collectionToUpdate.owner.id !== requesterId) {
+      throw new FieldError(
+        'collectionId',
+        ErrorMessages.YOU_CANNOT_MODIFY_COLLECTION,
+      );
     }
 
     const updatedCollection = {
@@ -99,10 +125,29 @@ export class CollectionService {
   public async addUserToCollection(
     id: string,
     user: User,
+    requesterId: string,
   ): Promise<Collection> {
-    const collection = await this.getById(id);
+    const collection = await this.getById(id, true);
     if (collection === null) {
-      throw new Error(ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST);
+      throw new FieldError(
+        'collectionId',
+        ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST,
+      );
+    }
+
+    if (collection.owner.id !== requesterId) {
+      throw new FieldError(
+        'collectionId',
+        ErrorMessages.YOU_CANNOT_MODIFY_COLLECTION,
+      );
+    }
+
+    if (
+      collection.users.findIndex(
+        (collectionUser) => collectionUser.id === user.id,
+      ) !== -1
+    ) {
+      throw new FieldError('username', ErrorMessages.USER_ALREADY_HAVE_ACCESS);
     }
 
     collection.users.push(user);
@@ -113,15 +158,38 @@ export class CollectionService {
   public async removeUserFromCollection(
     id: string,
     user: User,
+    requesterId: string,
   ): Promise<Collection> {
-    const collection = await this.getById(id);
+    const collection = await this.getById(id, true);
     if (collection === null) {
-      throw new Error(ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST);
+      throw new FieldError(
+        'collectionId',
+        ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST,
+      );
     }
 
-    const indexOfUser = collection.users.indexOf(user);
-    collection.users.splice(indexOfUser, 1);
+    if (collection.owner.id !== requesterId) {
+      throw new FieldError(
+        'collectionId',
+        ErrorMessages.YOU_CANNOT_MODIFY_COLLECTION,
+      );
+    }
 
+    if (collection.owner.id === user.id) {
+      throw new FieldError(
+        'username',
+        ErrorMessages.OWNER_CANNOT_REMOVE_ITSELF,
+      );
+    }
+
+    const indexOfUser = collection.users.findIndex(
+      (collectionUser) => collectionUser.id === user.id,
+    );
+
+    if (indexOfUser === -1) {
+      throw new FieldError('username', ErrorMessages.USER_DOES_NOT_HAVE_ACCESS);
+    }
+    collection.users.splice(indexOfUser, 1);
     return await this.collectionRepo.save(collection);
   }
 }

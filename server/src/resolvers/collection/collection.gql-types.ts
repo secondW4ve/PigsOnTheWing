@@ -19,3 +19,12 @@ export class CollectionResponse {
   @Field(() => Collection, { nullable: true })
   collection?: Collection;
 }
+
+@ObjectType()
+export class CollectionDeleteResponse {
+  @Field(() => [FieldError], { nullable: true })
+  errors?: FieldError[];
+
+  @Field(() => Boolean, { nullable: true })
+  deleted?: boolean;
+}

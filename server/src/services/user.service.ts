@@ -37,6 +37,7 @@ export class UserService {
     if (loadRelations) {
       relations = {
         collections: true,
+        createdCollections: true,
       };
     }
 
@@ -45,6 +46,7 @@ export class UserService {
         id,
       },
       relations,
+      loadEagerRelations: true,
     });
   }
 

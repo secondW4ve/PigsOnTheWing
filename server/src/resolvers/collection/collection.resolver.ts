@@ -12,12 +12,17 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { FieldError } from '@resolvers/common/common.gql-types';
 import { CollectionService } from '@services/collection.service';
 import { RequestDataService } from '@services/request-data.service';
 import { UserService } from '@services/user.service';
-import { CollectionInput, CollectionResponse } from './collection.gql-types';
+import {
+  CollectionDeleteResponse,
+  CollectionInput,
+  CollectionResponse,
+} from './collection.gql-types';
 
-@Resolver(() => CollectionResponse)
+@Resolver(() => Collection)
 export class CollectionResolver {
   public constructor(
     private collectionService: CollectionService,
@@ -29,18 +34,18 @@ export class CollectionResolver {
   async userCollections(@Context() { req }: GqlContext): Promise<Collection[]> {
     const user = await this.userService.getById(req.session.userId, true);
 
-    return user.collections;
+    return [...user.collections];
   }
 
   @Query(() => CollectionResponse)
-  async collectionByName(
-    @Args('collectionName') collectionName: string,
+  async collectionById(
+    @Args('collectionId') collectionId: string,
     @Context() { req }: GqlContext,
   ): Promise<CollectionResponse | null> {
     const user = await this.userService.getById(req.session.userId, true);
 
     const collections = user.collections.filter(
-      (collection) => collection.name === collectionName,
+      (collection) => collection.id === collectionId,
     );
 
     if (collections.length > 0) {
@@ -49,23 +54,14 @@ export class CollectionResolver {
       };
     }
 
-    return null;
-  }
-
-  @ResolveField(() => [User])
-  async users(@Parent() collection: Collection): Promise<User[]> {
-    const users = await this.userService.getForCollection(collection.id);
-
-    return users;
-  }
-
-  @ResolveField(() => [RequestData])
-  async requests(@Parent() collection: Collection): Promise<RequestData[]> {
-    const requests = await this.requestDataService.getByCollectionId(
-      collection.id,
-    );
-
-    return requests;
+    return {
+      errors: [
+        {
+          field: 'collectionId',
+          message: ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST,
+        },
+      ],
+    };
   }
 
   @Mutation(() => CollectionResponse)
@@ -88,20 +84,22 @@ export class CollectionResolver {
   async updateCollection(
     @Args('collectionId') collectionId: string,
     @Args('collectionData') collectionData: CollectionInput,
+    @Context() { req }: GqlContext,
   ): Promise<CollectionResponse> {
     try {
       const collection = await this.collectionService.update(
         collectionId,
         collectionData,
+        req.session.userId,
       );
 
       return { collection };
     } catch (err) {
-      if (err.message === ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST) {
+      if (err instanceof FieldError) {
         return {
           errors: [
             {
-              field: 'collectionId',
+              field: err.field,
               message: err.message,
             },
           ],
@@ -116,6 +114,7 @@ export class CollectionResolver {
   async addUserToCollection(
     @Args('username') username: string,
     @Args('collectionId') collectionId: string,
+    @Context() { req }: GqlContext,
   ): Promise<CollectionResponse> {
     const user = await this.userService.getByUsername(username);
 
@@ -134,15 +133,16 @@ export class CollectionResolver {
       const collection = await this.collectionService.addUserToCollection(
         collectionId,
         user,
+        req.session.userId,
       );
 
       return { collection };
     } catch (err) {
-      if (err.message === ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST) {
+      if (err instanceof FieldError) {
         return {
           errors: [
             {
-              field: 'collectionId',
+              field: err.field,
               message: err.message,
             },
           ],
@@ -157,6 +157,7 @@ export class CollectionResolver {
   async removeUserFromCollection(
     @Args('username') username: string,
     @Args('collectionId') collectionId: string,
+    @Context() { req }: GqlContext,
   ): Promise<CollectionResponse> {
     const user = await this.userService.getByUsername(username);
 
@@ -175,15 +176,16 @@ export class CollectionResolver {
       const collection = await this.collectionService.removeUserFromCollection(
         collectionId,
         user,
+        req.session.userId,
       );
 
       return { collection };
     } catch (err) {
-      if (err.message === ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST) {
+      if (err instanceof FieldError) {
         return {
           errors: [
             {
-              field: 'collectionId',
+              field: err.field,
               message: err.message,
             },
           ],
@@ -194,16 +196,44 @@ export class CollectionResolver {
     }
   }
 
-  @Mutation(() => CollectionResponse, { nullable: true })
+  @Mutation(() => CollectionDeleteResponse, { nullable: true })
   async deleteCollection(
     @Args('collectionId') collectionId: string,
-  ): Promise<CollectionResponse> {
-    const deletedCollection = await this.collectionService.deleteById(
-      collectionId,
-    );
+    @Context() { req }: GqlContext,
+  ): Promise<CollectionDeleteResponse> {
+    const user = await this.userService.getById(req.session.userId);
+    const collection = await this.collectionService.getById(collectionId);
+
+    if (collection === null || collection.owner.id !== user.id) {
+      return {
+        errors: [
+          {
+            field: 'collectionId',
+            message: ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST,
+          },
+        ],
+      };
+    }
+
+    await this.collectionService.deleteById(collection.id);
 
     return {
-      collection: deletedCollection,
+      deleted: true,
     };
+  }
+
+  @ResolveField(() => [User])
+  async users(@Parent() collection: Collection): Promise<User[]> {
+    const users = await this.userService.getForCollection(collection.id);
+
+    return users;
+  }
+
+  @ResolveField(() => [RequestData])
+  async requests(@Parent() collection: Collection): Promise<RequestData[]> {
+    const requests = await this.requestDataService.getByCollectionId(
+      collection.id,
+    );
+    return requests;
   }
 }

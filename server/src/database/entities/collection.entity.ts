@@ -2,8 +2,10 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
 } from 'typeorm';
 import { BaseEntity } from './base.entity';
@@ -29,6 +31,14 @@ export class Collection extends BaseEntity {
     length: 1000,
   })
   description: string;
+
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.createdCollections, {
+    eager: true,
+    cascade: true,
+  })
+  @JoinColumn([{ name: 'owner_id', referencedColumnName: 'id' }])
+  owner: User;
 
   @Field(() => [User])
   @ManyToMany(() => User, (user) => user.collections, { cascade: true })

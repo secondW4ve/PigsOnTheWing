@@ -6,7 +6,6 @@ type User {
   id: String!
   username: String!
   password: String!
-  collections: [Collection!]!
 }
 
 type Header {
@@ -37,6 +36,7 @@ type Collection {
   id: String!
   name: String!
   description: String!
+  owner: User!
   users: [User!]!
   requests: [RequestData!]!
 }
@@ -49,8 +49,11 @@ type FieldError {
 type CollectionResponse {
   errors: [FieldError!]
   collection: Collection
-  users: [User!]!
-  requests: [RequestData!]!
+}
+
+type CollectionDeleteResponse {
+  errors: [FieldError!]
+  deleted: Boolean
 }
 
 type RequestDataResponse {
@@ -67,14 +70,14 @@ type Query {
   helloWorld: String!
   me: User
   userCollections: [Collection!]!
-  collectionByName(collectionName: String!): CollectionResponse!
+  collectionById(collectionId: String!): CollectionResponse!
 }
 
 type Mutation {
   register(options: UsernamePasswordInput!): UserResponse!
   login(options: UsernamePasswordInput!): UserResponse!
   logout: Boolean!
-  createRequestInCollection(requestData: RequestDataInput!): RequestData!
+  createRequestInCollection(collectionId: String!, requestData: RequestDataInput!): RequestDataResponse!
   updateHeaders(headers: [HeaderInput!]!, requestId: String!): RequestDataResponse!
   updateRequest(requestId: String!, requestData: RequestDataInput!): RequestDataResponse!
   deleteRequest(requestId: String!): RequestDataResponse!
@@ -82,7 +85,7 @@ type Mutation {
   updateCollection(collectionId: String!, collectionData: CollectionInput!): CollectionResponse!
   addUserToCollection(username: String!, collectionId: String!): CollectionResponse!
   removeUserFromCollection(username: String!, collectionId: String!): CollectionResponse!
-  deleteCollection(collectionId: String!): CollectionResponse
+  deleteCollection(collectionId: String!): CollectionDeleteResponse
 }
 
 input UsernamePasswordInput {
@@ -96,7 +99,6 @@ input RequestDataInput {
   method: RequestMethods!
   body: String
   headers: [HeaderInput!]
-  collectionId: String!
 }
 
 input HeaderInput {

@@ -1,6 +1,4 @@
-import { Header } from '@database/entities/header.entity';
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { FieldError } from '@resolvers/common/common.gql-types';
+import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
 export class HeaderInput {
@@ -9,19 +7,4 @@ export class HeaderInput {
 
   @Field()
   value: string;
-}
-
-@InputType()
-export class HeaderInputWithRequest extends HeaderInput {
-  @Field()
-  requestId: string;
-}
-
-@ObjectType()
-export class HeaderResponse {
-  @Field(() => [FieldError], { nullable: true })
-  errors?: FieldError[];
-
-  @Field(() => Header, { nullable: true })
-  header?: Header;
 }

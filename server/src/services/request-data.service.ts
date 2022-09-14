@@ -1,19 +1,21 @@
-import { Header } from '@database/entities/header.entity';
+import { Collection } from '@database/entities/collection.entity';
 import { RequestData } from '@database/entities/request-data.entity';
+import { User } from '@database/entities/user.entity';
 import { ErrorMessages } from '@enums/error-messages.enum';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { FieldError } from '@resolvers/common/common.gql-types';
 import { HeaderInput } from '@resolvers/header/header.gql-types';
 import { RequestDataInput } from '@resolvers/request/request.gql-types';
 import { Repository } from 'typeorm';
-import { CollectionService } from './collection.service';
+import { HeaderService } from './header.service';
 
 @Injectable()
 export class RequestDataService {
   public constructor(
     @InjectRepository(RequestData)
     private requestDataRepo: Repository<RequestData>,
-    private collectionService: CollectionService,
+    private headerService: HeaderService,
   ) {}
 
   public async getByCollectionId(collectionId: string): Promise<RequestData[]> {
@@ -26,10 +28,22 @@ export class RequestDataService {
     return requestData;
   }
 
-  public async create(requestData: RequestDataInput): Promise<RequestData> {
-    const collection = await this.collectionService.getById(
-      requestData.collectionId,
-    );
+  public async create(
+    requestData: RequestDataInput,
+    collection: Collection,
+    requester: User,
+  ): Promise<RequestData> {
+    if (
+      collection.users.findIndex(
+        (collectionUser) => collectionUser.id === requester.id,
+      ) === -1
+    ) {
+      throw new FieldError(
+        'collectionId',
+        ErrorMessages.COLLECTION_WITH_ID_DOES_NOT_EXIST,
+      );
+    }
+
     const requestWithSameName = collection.requests.find(
       (request) => request.name === requestData.name,
     );
@@ -42,23 +56,34 @@ export class RequestDataService {
     request.description = requestData.description;
     request.method = requestData.method;
     request.body = requestData.body || null;
-    const headers = requestData.headers.map((headerData) => {
-      const header = new Header();
-      header.name = headerData.name;
-      header.value = headerData.value;
-      return header;
-    });
-    request.headers = headers;
     request.collection = collection;
+    const savedRequest = await this.requestDataRepo.save(request);
 
-    return await this.requestDataRepo.save(request);
+    await Promise.all(
+      requestData.headers.map(async (headerData) => {
+        return await this.headerService.create(headerData, savedRequest);
+      }),
+    );
+
+    return request;
   }
 
-  public async getById(id: string): Promise<RequestData | null> {
+  public async getById(
+    id: string,
+    loadRelations = false,
+  ): Promise<RequestData | null> {
+    let relations = {};
+    if (loadRelations) {
+      relations = {
+        headers: true,
+        collection: true,
+      };
+    }
     const requestData = await this.requestDataRepo.findOne({
       where: {
         id,
       },
+      relations,
     });
 
     return requestData;
@@ -68,14 +93,14 @@ export class RequestDataService {
     requestData: RequestData,
     headers: HeaderInput[],
   ): Promise<RequestData> {
-    headers.forEach((headerData) => {
-      const header = new Header();
-      header.name = headerData.name;
-      header.value = headerData.value;
-      requestData.headers.push(header);
-    });
+    await this.headerService.removeRequestHeaders(requestData);
+    await Promise.all(
+      headers.map(async (headerData) => {
+        await this.headerService.create(headerData, requestData);
+      }),
+    );
 
-    return await this.requestDataRepo.save(requestData);
+    return requestData;
   }
 
   public async update(
