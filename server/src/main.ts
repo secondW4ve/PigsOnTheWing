@@ -5,6 +5,7 @@ import session from 'express-session';
 import * as redis from 'redis';
 import { RedisConfigService } from '@configs/redis/redis-config.service';
 import { AppConfigService } from '@configs/app/app-config.service';
+import cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,6 +22,12 @@ async function bootstrap() {
 
   await redisClient.connect();
 
+  app.use(
+    cors({
+      origin: appConfigService.corsOrigin,
+      credentials: true,
+    }),
+  );
   app.use(
     session({
       name: appConfigService.cookieName,

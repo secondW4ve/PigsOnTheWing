@@ -49,6 +49,7 @@ import { GqlContext } from '@interfaces/gql.interfaces';
       driver: ApolloDriver,
       context: ({ req, res }): GqlContext => ({ req, res }),
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      cors: false,
     }),
   ],
   controllers: [AppController],

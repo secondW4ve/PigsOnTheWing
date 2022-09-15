@@ -20,4 +20,8 @@ export class AppConfigService {
   get cookieSecure(): boolean {
     return this.configService.get<string>('app.secureCookie') === 'true';
   }
+
+  get corsOrigin(): string {
+    return this.configService.get<string>('app.corsOrigin');
+  }
 }

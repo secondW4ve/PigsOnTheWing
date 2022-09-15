@@ -1,22 +1,6 @@
 version: '3.7'
 
 services:
-  client:
-    container_name: pigs-on-the-wing-client
-    build:
-      context: ./client
-      dockerfile: dev.Dockerfile
-    command: npm run dev
-    volumes:
-      - ./client:/app:delegated
-      - /app/node_modules
-    ports: 
-      - 3000:3000
-    depends_on:
-      - server
-    networks:
-      - pigs-on-the-wing-network
-
   server:
     container_name: pigs-on-the-wing-server
     build:
@@ -61,6 +45,7 @@ services:
       - pids-on-the-wing-redis-data:/data
     networks:
       - pigs-on-the-wing-network
+
 volumes:
   pigs-on-the-wing-volume:
   pids-on-the-wing-redis-data:
