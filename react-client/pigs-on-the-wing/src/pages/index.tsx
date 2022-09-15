@@ -1,5 +1,16 @@
-const Index = () => (
-  <div>Hello World!</div>
-)
+import Head from 'next/head';
+import NavBar from '../components/NavBar';
+import { withUrqlClient } from 'next-urql';
+import { createUrqlClient } from '../helpers/create-urql-client';
 
-export default Index;
+const Index = () => (
+  <>
+    <Head>
+      <title>Pigs on the Wing</title>
+      <link rel="icon" href="/favicon.ico" />
+    </Head>
+    <NavBar />
+  </>
+);
+
+export default withUrqlClient(createUrqlClient, { ssr: true })(Index);

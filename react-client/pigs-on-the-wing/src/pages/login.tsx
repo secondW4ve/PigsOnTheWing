@@ -3,36 +3,37 @@ import { Form, Formik } from 'formik';
 import { Box, Button, FormControl } from '@chakra-ui/react';
 import Wrapper from '../components/Wrapper';
 import { InputField } from '../components/InputField';
-import { useRegisterMutation } from '../generated/graphql';
+import { useLoginMutation } from '../generated/graphql';
 import { toErrorMap } from '../helpers/to-error-map';
 import { useRouter } from 'next/router';
 import { validateCredentialsInput } from '../helpers/validate-credentials';
 
-interface RegisterProps {
+interface LoginProps {}
 
-}
-
-export const Register: React.FC<RegisterProps> = ({ }) => {
+export const Login: React.FC<LoginProps> = ({}) => {
   const router = useRouter();
-  const [, register] = useRegisterMutation();
+  const [, login] = useLoginMutation();
 
   return (
     <Wrapper>
       <Formik
         initialValues={{ username: '', password: '' }}
         onSubmit={async (values, { setErrors }) => {
-          const validationResult = validateCredentialsInput(values.username, values.password);
+          const validationResult = validateCredentialsInput(
+            values.username,
+            values.password,
+          );
           if (!validationResult.valid) {
             setErrors(validationResult.errors);
 
             return;
           }
-          const response = await register(values);
-          if (response.data?.register.errors) {
-            setErrors(toErrorMap(response.data.register.errors));
+          const response = await login(values);
+          if (response.data?.login.errors) {
+            setErrors(toErrorMap(response.data.login.errors));
 
             return;
-          } else if (response.data?.register.user) {
+          } else if (response.data?.login.user) {
             router.push('/');
           }
         }}
@@ -41,25 +42,25 @@ export const Register: React.FC<RegisterProps> = ({ }) => {
           <Form>
             <FormControl>
               <InputField
-                name='username'
-                placeholder='username'
-                label='Username'
+                name="username"
+                placeholder="username"
+                label="Username"
               />
               <Box mt={4}>
                 <InputField
-                  name='password'
-                  placeholder='password'
-                  label='Password'
-                  type='password'
+                  name="password"
+                  placeholder="password"
+                  label="Password"
+                  type="password"
                 />
               </Box>
               <Button
                 mt={4}
-                type='submit'
+                type="submit"
                 colorScheme={'teal'}
                 isLoading={isSubmitting}
               >
-                Register
+                Login
               </Button>
             </FormControl>
           </Form>
@@ -67,6 +68,6 @@ export const Register: React.FC<RegisterProps> = ({ }) => {
       </Formik>
     </Wrapper>
   );
-}
+};
 
-export default Register;
+export default Login;
