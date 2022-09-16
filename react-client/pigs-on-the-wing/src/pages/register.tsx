@@ -7,12 +7,12 @@ import { useRegisterMutation } from '../generated/graphql';
 import { toErrorMap } from '../helpers/to-error-map';
 import { useRouter } from 'next/router';
 import { validateCredentialsInput } from '../helpers/validate-credentials';
+import { withUrqlClient } from 'next-urql';
+import { createUrqlClient } from '../helpers/create-urql-client';
 
-interface RegisterProps {
+interface RegisterProps {}
 
-}
-
-export const Register: React.FC<RegisterProps> = ({ }) => {
+export const Register: React.FC<RegisterProps> = ({}) => {
   const router = useRouter();
   const [, register] = useRegisterMutation();
 
@@ -21,7 +21,10 @@ export const Register: React.FC<RegisterProps> = ({ }) => {
       <Formik
         initialValues={{ username: '', password: '' }}
         onSubmit={async (values, { setErrors }) => {
-          const validationResult = validateCredentialsInput(values.username, values.password);
+          const validationResult = validateCredentialsInput(
+            values.username,
+            values.password,
+          );
           if (!validationResult.valid) {
             setErrors(validationResult.errors);
 
@@ -41,21 +44,21 @@ export const Register: React.FC<RegisterProps> = ({ }) => {
           <Form>
             <FormControl>
               <InputField
-                name='username'
-                placeholder='username'
-                label='Username'
+                name="username"
+                placeholder="username"
+                label="Username"
               />
               <Box mt={4}>
                 <InputField
-                  name='password'
-                  placeholder='password'
-                  label='Password'
-                  type='password'
+                  name="password"
+                  placeholder="password"
+                  label="Password"
+                  type="password"
                 />
               </Box>
               <Button
                 mt={4}
-                type='submit'
+                type="submit"
                 colorScheme={'teal'}
                 isLoading={isSubmitting}
               >
@@ -67,6 +70,6 @@ export const Register: React.FC<RegisterProps> = ({ }) => {
       </Formik>
     </Wrapper>
   );
-}
+};
 
-export default Register;
+export default withUrqlClient(createUrqlClient, { ssr: true })(Register);

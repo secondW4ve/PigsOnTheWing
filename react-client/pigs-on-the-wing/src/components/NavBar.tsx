@@ -1,13 +1,19 @@
 import { Box, Button, Flex, Link } from '@chakra-ui/react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import NextLink from 'next/link';
 import { useMeQuery, useLogoutMutation } from '../generated/graphql';
 
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
-  const [{ data, fetching }] = useMeQuery();
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
+  // We will do query when doing ssr, because we don't have cookie in Next.js server, we have it only in browser
+  // So, instead we will render HTML in broswer and only them do query from browser, not Next.js server
+  const [isServer, setIsServer] = useState(true);
+  const [{ data, fetching }] = useMeQuery({
+    pause: isServer,
+  });
+  useEffect(() => setIsServer(false), []);
 
   let navigation = null;
   if (fetching) {
