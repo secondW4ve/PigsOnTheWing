@@ -20,6 +20,7 @@ type RequestData {
   name: String!
   description: String!
   method: RequestMethods!
+  url: String!
   body: String
   headers: [Header!]
   collection: Collection
@@ -67,8 +68,8 @@ type UserResponse {
 }
 
 type Query {
-  helloWorld: String!
   me: User
+  requestById(requestId: String!): RequestDataResponse!
   userCollections: [Collection!]!
   collectionById(collectionId: String!): CollectionResponse!
 }
@@ -97,6 +98,7 @@ input RequestDataInput {
   name: String!
   description: String
   method: RequestMethods!
+  url: String!
   body: String
   headers: [HeaderInput!]
 }

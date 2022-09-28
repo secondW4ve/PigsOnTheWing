@@ -44,17 +44,11 @@ export class RequestDataService {
       );
     }
 
-    const requestWithSameName = collection.requests.find(
-      (request) => request.name === requestData.name,
-    );
-    if (requestWithSameName) {
-      throw new Error(ErrorMessages.REQUEST_WITH_NAME_ALREADY_EXIST);
-    }
-
     const request = new RequestData();
     request.name = requestData.name;
     request.description = requestData.description;
     request.method = requestData.method;
+    request.url = requestData.url;
     request.body = requestData.body || null;
     request.collection = collection;
     const savedRequest = await this.requestDataRepo.save(request);

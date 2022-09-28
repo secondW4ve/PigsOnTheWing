@@ -1,0 +1,8 @@
+mutation DeleteCollection($collectionId: String!) {
+  deleteCollection(collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    deleted
+  }
+}

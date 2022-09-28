@@ -41,6 +41,14 @@ export class RequestData extends BaseEntity {
   })
   method: RequestMethods;
 
+  @Field()
+  @Column({
+    type: 'varchar',
+    length: 256,
+    name: 'url',
+  })
+  url: string;
+
   @Field(() => String, { nullable: true })
   @Column({
     type: 'text',

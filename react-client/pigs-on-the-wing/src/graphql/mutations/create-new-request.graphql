@@ -1,0 +1,14 @@
+mutation CreateRequestInCollection($inputData: RequestDataInput!, $collectionId: String!) {
+  createRequestInCollection(
+    requestData: $inputData,
+    collectionId: $collectionId
+	) {
+		errors {
+      ...ErrorInfo
+    }
+    request {
+      id
+      name
+    }
+  }
+}

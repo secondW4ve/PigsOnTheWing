@@ -6,8 +6,13 @@ import {
   MeDocument,
   RegisterMutation,
   LogoutMutation,
+  CreateCollectionMutation,
+  UserCollectionsQuery,
+  useUserCollectionsQuery,
+  UserCollectionsDocument,
 } from '../generated/graphql';
 import { betterUpdateQuery } from './better-update-query';
+import { errorExchange } from './error-exchange';
 
 export const createUrqlClient = (ssrExchange: any) => ({
   url: 'http://localhost:8081/graphql',
@@ -59,10 +64,26 @@ export const createUrqlClient = (ssrExchange: any) => ({
               () => ({ me: null }),
             );
           },
+          // createCollection: (_result, _args, cache, _info) => {
+          //   betterUpdateQuery<CreateCollectionMutation, UserCollectionsQuery>(
+          //     cache,
+          //     { query: UserCollectionsDocument },
+          //     _result,
+          //     (result, query) => {
+          //       if (result.createCollection.errors) {
+          //         return query;
+          //       } else {
+          //         return
+          //         }
+          //       }
+          //     },
+          //   );
+          // },
         },
       },
     }),
     ssrExchange,
+    // errorExchange,
     fetchExchange,
   ],
 });

@@ -10,4 +10,5 @@ export enum ErrorMessages {
   USER_DOES_NOT_HAVE_ACCESS = 'This user does not have access to this collection',
   OWNER_CANNOT_REMOVE_ITSELF = 'Owner cannot remove itself from Collection',
   USER_ALREADY_HAVE_ACCESS = 'This user already has access to this collection',
+  NAME_TOO_SHORT = 'Name should be at least 3 character long',
 }

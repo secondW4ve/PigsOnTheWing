@@ -3,6 +3,7 @@ import { RequestData } from '@database/entities/request-data.entity';
 import { User } from '@database/entities/user.entity';
 import { ErrorMessages } from '@enums/error-messages.enum';
 import { GqlContext } from '@interfaces/gql.interfaces';
+import { UseGuards } from '@nestjs/common';
 import {
   Args,
   Context,
@@ -16,6 +17,7 @@ import { FieldError } from '@resolvers/common/common.gql-types';
 import { CollectionService } from '@services/collection.service';
 import { RequestDataService } from '@services/request-data.service';
 import { UserService } from '@services/user.service';
+import { AuthGuard } from 'src/middleware/auth.middleware';
 import {
   CollectionDeleteResponse,
   CollectionInput,
@@ -23,6 +25,7 @@ import {
 } from './collection.gql-types';
 
 @Resolver(() => Collection)
+@UseGuards(AuthGuard)
 export class CollectionResolver {
   public constructor(
     private collectionService: CollectionService,
@@ -69,6 +72,17 @@ export class CollectionResolver {
     @Args('collectionData') collectionData: CollectionInput,
     @Context() { req }: GqlContext,
   ): Promise<CollectionResponse> {
+    if (collectionData.name.length <= 2) {
+      return {
+        errors: [
+          {
+            field: 'name',
+            message: ErrorMessages.NAME_TOO_SHORT,
+          },
+        ],
+      };
+    }
+
     const user = await this.userService.getById(req.session.userId);
     const collection = await this.collectionService.create(
       collectionData,

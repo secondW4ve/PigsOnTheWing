@@ -1,0 +1,19 @@
+query RequestById ($requestId: String!) {
+  requestById(requestId: $requestId) {
+    errors {
+      ...ErrorInfo
+    }
+    request {
+			id
+      name
+      description
+      method
+      url
+      body
+      headers {
+				name
+        value
+      }
+    }
+  }
+}

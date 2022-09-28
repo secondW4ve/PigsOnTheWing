@@ -2,17 +2,17 @@ import React from 'react';
 import { Form, Formik } from 'formik';
 import { Box, Button, FormControl } from '@chakra-ui/react';
 import Wrapper from '../components/Wrapper';
-import { InputField } from '../components/InputField';
 import { useRegisterMutation } from '../generated/graphql';
 import { toErrorMap } from '../helpers/to-error-map';
 import { useRouter } from 'next/router';
 import { validateCredentialsInput } from '../helpers/validate-credentials';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../helpers/create-urql-client';
+import InputField from '../components/InputField';
 
 interface RegisterProps {}
 
-export const Register: React.FC<RegisterProps> = ({}) => {
+const Register: React.FC<RegisterProps> = ({}) => {
   const router = useRouter();
   const [, register] = useRegisterMutation();
 

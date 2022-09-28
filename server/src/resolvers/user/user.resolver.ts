@@ -2,7 +2,9 @@ import { AppConfigService } from '@configs/app/app-config.service';
 import { User } from '@database/entities/user.entity';
 import { ErrorMessages } from '@enums/error-messages.enum';
 import { GqlContext } from '@interfaces/gql.interfaces';
+import { UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { AuthGuard } from 'src/middleware/auth.middleware';
 import { AuthService } from 'src/services/auth.service';
 import { UserService } from 'src/services/user.service';
 import { UserResponse, UsernamePasswordInput } from './user.gql-types';
@@ -14,11 +16,6 @@ export class UserResolver {
     private authService: AuthService,
     private appConfigService: AppConfigService,
   ) {}
-
-  @Query(() => String)
-  helloWorld() {
-    return 'Hello World!';
-  }
 
   @Query(() => User, { nullable: true })
   async me(@Context() { req }: GqlContext) {
@@ -99,6 +96,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
+  @UseGuards(AuthGuard)
   logout(@Context() { req, res }: GqlContext): Promise<any> {
     return new Promise((resolve) =>
       req.session.destroy((err) => {

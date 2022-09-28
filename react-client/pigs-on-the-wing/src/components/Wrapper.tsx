@@ -2,13 +2,13 @@ import { Box } from '@chakra-ui/react';
 import React from 'react';
 
 interface WrapperProps {
-  variant?: 'small' | 'regular',
-  children: React.ReactNode,
+  variant?: 'small' | 'regular';
+  children: React.ReactNode;
 }
 
 export const Wrapper: React.FC<WrapperProps> = ({
   children,
-  variant = 'regular'
+  variant = 'regular',
 }) => {
   return (
     <Box
@@ -20,6 +20,6 @@ export const Wrapper: React.FC<WrapperProps> = ({
       {children}
     </Box>
   );
-}
+};
 
 export default Wrapper;

@@ -1,0 +1,11 @@
+mutation CreateCollection($collectionData: CollectionInput!) {
+  createCollection(collectionData: $collectionData) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+			name
+    }
+  }
+}

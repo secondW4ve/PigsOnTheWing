@@ -41,6 +41,7 @@ export class CreateTables1662480020362 implements MigrationInterface {
         name varchar(255) NOT NULL,
         description varchar(1000),
         method request_methods NOT NULL,
+        url varchar(256) NOT NULL,
         body TEXT,
         collection_id uuid NOT NULL,
         CONSTRAINT request_pkey PRIMARY KEY (id),

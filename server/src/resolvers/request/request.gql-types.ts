@@ -15,6 +15,9 @@ export class RequestDataInput {
   @Field(() => RequestMethods)
   method: RequestMethods;
 
+  @Field(() => String)
+  url: string;
+
   @Field(() => String, { nullable: true })
   body?: string;
 

@@ -1,0 +1,6 @@
+query UserCollections {
+ 	userCollections {
+    id
+    name
+  }
+}

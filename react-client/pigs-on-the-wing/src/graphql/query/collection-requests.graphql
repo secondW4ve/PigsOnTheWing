@@ -1,0 +1,15 @@
+query CollectionRequests($collectionId: String!) {
+  collectionById(collectionId: $collectionId) {
+		errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+			requests {
+        id
+        method
+        name
+      }
+    }
+	}
+}

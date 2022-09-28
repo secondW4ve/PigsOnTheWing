@@ -1,0 +1,10 @@
+mutation DeleteRequest($requestId: String!) {
+  deleteRequest(requestId: $requestId) {
+    errors {
+      ...ErrorInfo
+    }
+    request {
+      id
+    }
+  }
+}

@@ -1,0 +1,13 @@
+query CollectionUsers($collectionId: String!) {
+  collectionById(collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+			id
+      users {
+        ...UserInfo
+      }
+    }
+  }
+}

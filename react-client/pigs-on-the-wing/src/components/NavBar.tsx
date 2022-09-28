@@ -2,10 +2,12 @@ import { Box, Button, Flex, Link } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import NextLink from 'next/link';
 import { useMeQuery, useLogoutMutation } from '../generated/graphql';
+import { useRouter } from 'next/router';
 
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
+  const router = useRouter();
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   // We will do query when doing ssr, because we don't have cookie in Next.js server, we have it only in browser
   // So, instead we will render HTML in broswer and only them do query from browser, not Next.js server
@@ -37,7 +39,10 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
           <Button
             variant="link"
             colorScheme="cyan"
-            onClick={() => logout({})}
+            onClick={async () => {
+              await logout({});
+              router.push('/login');
+            }}
             isLoading={logoutFetching}
           >
             logout
@@ -48,8 +53,8 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   }
 
   return (
-    <Flex bg="teal" p={2}>
-      Pigs on the Wing
+    <Flex bg="teal" p={2} h={'5vh'}>
+      <Box>Pigs on the Wing</Box>
       <Box ml="auto">{navigation}</Box>
     </Flex>
   );

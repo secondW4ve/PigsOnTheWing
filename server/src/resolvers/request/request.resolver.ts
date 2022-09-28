@@ -3,11 +3,13 @@ import { Header } from '@database/entities/header.entity';
 import { RequestData } from '@database/entities/request-data.entity';
 import { ErrorMessages } from '@enums/error-messages.enum';
 import { GqlContext } from '@interfaces/gql.interfaces';
+import { UseGuards } from '@nestjs/common';
 import {
   Args,
   Context,
   Mutation,
   Parent,
+  Query,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
@@ -17,9 +19,11 @@ import { CollectionService } from '@services/collection.service';
 import { HeaderService } from '@services/header.service';
 import { RequestDataService } from '@services/request-data.service';
 import { UserService } from '@services/user.service';
+import { AuthGuard } from 'src/middleware/auth.middleware';
 import { RequestDataInput, RequestDataResponse } from './request.gql-types';
 
 @Resolver(() => RequestData)
+@UseGuards(AuthGuard)
 export class RequestDataResolver {
   public constructor(
     private requestDataService: RequestDataService,
@@ -27,6 +31,28 @@ export class RequestDataResolver {
     private userService: UserService,
     private headerService: HeaderService,
   ) {}
+
+  @Query(() => RequestDataResponse)
+  async requestById(
+    @Args('requestId') requestId: string,
+  ): Promise<RequestDataResponse> {
+    const request = await this.requestDataService.getById(requestId);
+
+    if (request === null) {
+      return {
+        errors: [
+          {
+            field: 'requestId',
+            message: ErrorMessages.REQUEST_WITH_ID_DOES_NOT_EXIST,
+          },
+        ],
+      };
+    }
+
+    return {
+      request,
+    };
+  }
 
   @Mutation(() => RequestDataResponse)
   async createRequestInCollection(
@@ -53,7 +79,6 @@ export class RequestDataResolver {
         collection,
         user,
       );
-
       return { request };
     } catch (err) {
       if (err instanceof FieldError) {

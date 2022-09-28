@@ -1,0 +1,11 @@
+mutation RemoveUserFromCollection($username: String!, $collectionId: String!) {
+  removeUserFromCollection(username: $username, collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+      name
+    }
+  }
+}

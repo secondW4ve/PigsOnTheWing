@@ -1,0 +1,11 @@
+mutation AddUserToCollection($username: String!, $collectionId: String!) {
+  addUserToCollection(username: $username, collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+      name
+    }
+  }
+}

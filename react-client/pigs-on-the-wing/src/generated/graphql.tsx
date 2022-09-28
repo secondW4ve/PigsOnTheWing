@@ -141,14 +141,19 @@ export type MutationUpdateRequestArgs = {
 export type Query = {
   __typename?: 'Query';
   collectionById: CollectionResponse;
-  helloWorld: Scalars['String'];
   me?: Maybe<User>;
+  requestById: RequestDataResponse;
   userCollections: Array<Collection>;
 };
 
 
 export type QueryCollectionByIdArgs = {
   collectionId: Scalars['String'];
+};
+
+
+export type QueryRequestByIdArgs = {
+  requestId: Scalars['String'];
 };
 
 export type RequestData = {
@@ -160,6 +165,7 @@ export type RequestData = {
   id: Scalars['String'];
   method: RequestMethods;
   name: Scalars['String'];
+  url: Scalars['String'];
 };
 
 export type RequestDataInput = {
@@ -168,6 +174,7 @@ export type RequestDataInput = {
   headers?: InputMaybe<Array<HeaderInput>>;
   method: RequestMethods;
   name: Scalars['String'];
+  url: Scalars['String'];
 };
 
 export type RequestDataResponse = {
@@ -205,6 +212,43 @@ export type ErrorInfoFragment = { __typename?: 'FieldError', field: string, mess
 
 export type UserInfoFragment = { __typename?: 'User', id: string, username: string };
 
+export type AddUserToCollectionMutationVariables = Exact<{
+  username: Scalars['String'];
+  collectionId: Scalars['String'];
+}>;
+
+
+export type AddUserToCollectionMutation = { __typename?: 'Mutation', addUserToCollection: { __typename?: 'CollectionResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, collection?: { __typename?: 'Collection', id: string, name: string } | null } };
+
+export type CreateCollectionMutationVariables = Exact<{
+  collectionData: CollectionInput;
+}>;
+
+
+export type CreateCollectionMutation = { __typename?: 'Mutation', createCollection: { __typename?: 'CollectionResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, collection?: { __typename?: 'Collection', id: string, name: string } | null } };
+
+export type CreateRequestInCollectionMutationVariables = Exact<{
+  inputData: RequestDataInput;
+  collectionId: Scalars['String'];
+}>;
+
+
+export type CreateRequestInCollectionMutation = { __typename?: 'Mutation', createRequestInCollection: { __typename?: 'RequestDataResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, request?: { __typename?: 'RequestData', id: string, name: string } | null } };
+
+export type DeleteCollectionMutationVariables = Exact<{
+  collectionId: Scalars['String'];
+}>;
+
+
+export type DeleteCollectionMutation = { __typename?: 'Mutation', deleteCollection?: { __typename?: 'CollectionDeleteResponse', deleted?: boolean | null, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null } | null };
+
+export type DeleteRequestMutationVariables = Exact<{
+  requestId: Scalars['String'];
+}>;
+
+
+export type DeleteRequestMutation = { __typename?: 'Mutation', deleteRequest: { __typename?: 'RequestDataResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, request?: { __typename?: 'RequestData', id: string } | null } };
+
 export type LoginMutationVariables = Exact<{
   username: Scalars['String'];
   password: Scalars['String'];
@@ -226,10 +270,44 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, user?: { __typename?: 'User', id: string, username: string } | null } };
 
+export type RemoveUserFromCollectionMutationVariables = Exact<{
+  username: Scalars['String'];
+  collectionId: Scalars['String'];
+}>;
+
+
+export type RemoveUserFromCollectionMutation = { __typename?: 'Mutation', removeUserFromCollection: { __typename?: 'CollectionResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, collection?: { __typename?: 'Collection', id: string, name: string } | null } };
+
+export type CollectionRequestsQueryVariables = Exact<{
+  collectionId: Scalars['String'];
+}>;
+
+
+export type CollectionRequestsQuery = { __typename?: 'Query', collectionById: { __typename?: 'CollectionResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, collection?: { __typename?: 'Collection', id: string, requests: Array<{ __typename?: 'RequestData', id: string, method: RequestMethods, name: string }> } | null } };
+
+export type CollectionUsersQueryVariables = Exact<{
+  collectionId: Scalars['String'];
+}>;
+
+
+export type CollectionUsersQuery = { __typename?: 'Query', collectionById: { __typename?: 'CollectionResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, collection?: { __typename?: 'Collection', id: string, users: Array<{ __typename?: 'User', id: string, username: string }> } | null } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, username: string } | null };
+
+export type RequestByIdQueryVariables = Exact<{
+  requestId: Scalars['String'];
+}>;
+
+
+export type RequestByIdQuery = { __typename?: 'Query', requestById: { __typename?: 'RequestDataResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, request?: { __typename?: 'RequestData', id: string, name: string, description: string, method: RequestMethods, url: string, body?: string | null, headers?: Array<{ __typename?: 'Header', name: string, value: string }> | null } | null } };
+
+export type UserCollectionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UserCollectionsQuery = { __typename?: 'Query', userCollections: Array<{ __typename?: 'Collection', id: string, name: string }> };
 
 export const ErrorInfoFragmentDoc = gql`
     fragment ErrorInfo on FieldError {
@@ -243,6 +321,87 @@ export const UserInfoFragmentDoc = gql`
   username
 }
     `;
+export const AddUserToCollectionDocument = gql`
+    mutation AddUserToCollection($username: String!, $collectionId: String!) {
+  addUserToCollection(username: $username, collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+      name
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useAddUserToCollectionMutation() {
+  return Urql.useMutation<AddUserToCollectionMutation, AddUserToCollectionMutationVariables>(AddUserToCollectionDocument);
+};
+export const CreateCollectionDocument = gql`
+    mutation CreateCollection($collectionData: CollectionInput!) {
+  createCollection(collectionData: $collectionData) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+      name
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useCreateCollectionMutation() {
+  return Urql.useMutation<CreateCollectionMutation, CreateCollectionMutationVariables>(CreateCollectionDocument);
+};
+export const CreateRequestInCollectionDocument = gql`
+    mutation CreateRequestInCollection($inputData: RequestDataInput!, $collectionId: String!) {
+  createRequestInCollection(requestData: $inputData, collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    request {
+      id
+      name
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useCreateRequestInCollectionMutation() {
+  return Urql.useMutation<CreateRequestInCollectionMutation, CreateRequestInCollectionMutationVariables>(CreateRequestInCollectionDocument);
+};
+export const DeleteCollectionDocument = gql`
+    mutation DeleteCollection($collectionId: String!) {
+  deleteCollection(collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    deleted
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useDeleteCollectionMutation() {
+  return Urql.useMutation<DeleteCollectionMutation, DeleteCollectionMutationVariables>(DeleteCollectionDocument);
+};
+export const DeleteRequestDocument = gql`
+    mutation DeleteRequest($requestId: String!) {
+  deleteRequest(requestId: $requestId) {
+    errors {
+      ...ErrorInfo
+    }
+    request {
+      id
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useDeleteRequestMutation() {
+  return Urql.useMutation<DeleteRequestMutation, DeleteRequestMutationVariables>(DeleteRequestDocument);
+};
 export const LoginDocument = gql`
     mutation Login($username: String!, $password: String!) {
   login(options: {username: $username, password: $password}) {
@@ -286,6 +445,64 @@ ${UserInfoFragmentDoc}`;
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
 };
+export const RemoveUserFromCollectionDocument = gql`
+    mutation RemoveUserFromCollection($username: String!, $collectionId: String!) {
+  removeUserFromCollection(username: $username, collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+      name
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useRemoveUserFromCollectionMutation() {
+  return Urql.useMutation<RemoveUserFromCollectionMutation, RemoveUserFromCollectionMutationVariables>(RemoveUserFromCollectionDocument);
+};
+export const CollectionRequestsDocument = gql`
+    query CollectionRequests($collectionId: String!) {
+  collectionById(collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+      requests {
+        id
+        method
+        name
+      }
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useCollectionRequestsQuery(options: Omit<Urql.UseQueryArgs<CollectionRequestsQueryVariables>, 'query'>) {
+  return Urql.useQuery<CollectionRequestsQuery, CollectionRequestsQueryVariables>({ query: CollectionRequestsDocument, ...options });
+};
+export const CollectionUsersDocument = gql`
+    query CollectionUsers($collectionId: String!) {
+  collectionById(collectionId: $collectionId) {
+    errors {
+      ...ErrorInfo
+    }
+    collection {
+      id
+      users {
+        ...UserInfo
+      }
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}
+${UserInfoFragmentDoc}`;
+
+export function useCollectionUsersQuery(options: Omit<Urql.UseQueryArgs<CollectionUsersQueryVariables>, 'query'>) {
+  return Urql.useQuery<CollectionUsersQuery, CollectionUsersQueryVariables>({ query: CollectionUsersDocument, ...options });
+};
 export const MeDocument = gql`
     query Me {
   me {
@@ -296,4 +513,41 @@ export const MeDocument = gql`
 
 export function useMeQuery(options?: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'>) {
   return Urql.useQuery<MeQuery, MeQueryVariables>({ query: MeDocument, ...options });
+};
+export const RequestByIdDocument = gql`
+    query RequestById($requestId: String!) {
+  requestById(requestId: $requestId) {
+    errors {
+      ...ErrorInfo
+    }
+    request {
+      id
+      name
+      description
+      method
+      url
+      body
+      headers {
+        name
+        value
+      }
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useRequestByIdQuery(options: Omit<Urql.UseQueryArgs<RequestByIdQueryVariables>, 'query'>) {
+  return Urql.useQuery<RequestByIdQuery, RequestByIdQueryVariables>({ query: RequestByIdDocument, ...options });
+};
+export const UserCollectionsDocument = gql`
+    query UserCollections {
+  userCollections {
+    id
+    name
+  }
+}
+    `;
+
+export function useUserCollectionsQuery(options?: Omit<Urql.UseQueryArgs<UserCollectionsQueryVariables>, 'query'>) {
+  return Urql.useQuery<UserCollectionsQuery, UserCollectionsQueryVariables>({ query: UserCollectionsDocument, ...options });
 };
