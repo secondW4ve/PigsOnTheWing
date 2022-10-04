@@ -18,6 +18,7 @@ export interface RequestInfoState {
 export interface ResponseInfoState {
   body: string;
   status: number | null;
+  statusText: string | null;
   headers: RequestHeader[];
   fetching: boolean;
 }

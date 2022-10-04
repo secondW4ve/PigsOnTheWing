@@ -83,11 +83,10 @@ export class RequestDataService {
     return requestData;
   }
 
-  public async updateHeaders(
+  public async addHeadersToRequest(
     requestData: RequestData,
     headers: HeaderInput[],
   ): Promise<RequestData> {
-    await this.headerService.removeRequestHeaders(requestData);
     await Promise.all(
       headers.map(async (headerData) => {
         await this.headerService.create(headerData, requestData);
@@ -98,19 +97,15 @@ export class RequestDataService {
   }
 
   public async update(
-    requestId: string,
-    requestData: RequestDataInput,
+    request: RequestData,
+    updatedRequest: RequestDataInput,
   ): Promise<RequestData> {
-    const requestDataToUpdate = await this.getById(requestId);
-    if (requestDataToUpdate === null) {
-      throw new Error(ErrorMessages.REQUEST_WITH_ID_DOES_NOT_EXIST);
-    }
-
     const updatedRequestData = {
-      ...requestDataToUpdate,
-      ...requestData,
+      ...request,
+      ...updatedRequest,
     };
 
+    delete updatedRequestData.headers;
     return await this.requestDataRepo.save(updatedRequestData);
   }
 

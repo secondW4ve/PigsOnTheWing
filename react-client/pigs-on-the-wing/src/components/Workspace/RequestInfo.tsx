@@ -7,33 +7,32 @@ import {
   Input,
   Textarea,
 } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 interface RequestInfoProps {
   name: string;
+  setName: React.Dispatch<React.SetStateAction<string>>;
   description?: string;
+  setDescription: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const RequestInfo: React.FC<RequestInfoProps> = ({ name, description }) => {
+const RequestInfo: React.FC<RequestInfoProps> = ({
+  name,
+  setName,
+  description,
+  setDescription,
+}) => {
   const [editing, setEditing] = useState(false);
-  const [nameValue, setNameValue] = useState(name);
-  const [descriptionValue, setDescriptionValue] = useState(description || '');
-  useEffect(() => {
-    setNameValue(name);
-  }, [name]);
-  useEffect(() => {
-    setDescriptionValue(description || '');
-  }, [description]);
 
   return (
     <Flex direction={'column'} borderTop={'1px'} borderBottom={'1px'} p={2}>
       <Flex justifyContent={'space-between'}>
         {!editing ? (
-          <Heading size={'md'}>{nameValue || 'Empty name'}</Heading>
+          <Heading size={'md'}>{name || 'Empty name'}</Heading>
         ) : (
           <Input
-            value={nameValue}
-            onChange={(event) => setNameValue(event.target.value)}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
             mr={2}
             height={'30px'}
           />
@@ -46,11 +45,11 @@ const RequestInfo: React.FC<RequestInfoProps> = ({ name, description }) => {
         ></IconButton>
       </Flex>
       {!editing ? (
-        <Box mt={2}>{descriptionValue || '-'}</Box>
+        <Box mt={2}>{description || '-'}</Box>
       ) : (
         <Textarea
-          value={descriptionValue}
-          onChange={(event) => setDescriptionValue(event.target.value)}
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
           mr={2}
         />
       )}

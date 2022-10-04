@@ -7,6 +7,7 @@ export const responseDataInitState: ResponseInfoState = {
   headers: [],
   fetching: false,
   status: null,
+  statusText: null,
 };
 
 const responseDataSlice = createSlice({
@@ -25,6 +26,9 @@ const responseDataSlice = createSlice({
     setStatus: (state, { payload }) => {
       state.status = payload.status;
     },
+    setStatusText: (state, { payload }) => {
+      state.statusText = payload.statusText;
+    },
     clearResponseData: () => ({
       ...responseDataInitState,
     }),
@@ -36,6 +40,7 @@ export const {
   setHeaders,
   setFetching,
   setStatus,
+  setStatusText,
   clearResponseData,
 } = responseDataSlice.actions;
 

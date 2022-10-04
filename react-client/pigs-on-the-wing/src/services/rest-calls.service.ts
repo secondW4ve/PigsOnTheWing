@@ -11,22 +11,28 @@ class RestCallService {
     headers: RequestHeader[] = [],
     body?: string,
   ): Promise<any> {
-    console.log({
-      method,
-      url,
-      headers: toAxiosHeaders(headers),
-      data: body,
-      timeout: CALL_TIMEOUT,
-    });
-    const resp = await axios.request({
-      method,
-      url,
-      headers: toAxiosHeaders(headers),
-      data: body,
-      timeout: CALL_TIMEOUT,
-    });
+    try {
+      const resp = await axios.request({
+        method,
+        url,
+        headers: toAxiosHeaders(headers),
+        data: body,
+        timeout: CALL_TIMEOUT,
+      });
 
-    return resp || null;
+      return resp || null;
+    } catch (err: any) {
+      if (err.name === 'AxiosError') {
+        return {
+          data: err.response.data,
+          status: err.response.status,
+          statusText: err.response.statusText,
+          headers: err.response.headers,
+        };
+      }
+
+      throw err;
+    }
   }
 }
 

@@ -6,7 +6,7 @@ import {
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { RequestMethods, useRequestByIdQuery } from '../../generated/graphql';
 import * as requestDataAction from '../../redux/slices/request-data.slice';
@@ -17,6 +17,7 @@ interface RequestListItemProps {
   requestId: string;
   name: string;
   method: RequestMethods;
+  selected: boolean;
   deleteRequest: () => Promise<void>;
 }
 
@@ -24,11 +25,11 @@ const RequestListItem: React.FC<RequestListItemProps> = ({
   requestId,
   name,
   method,
+  selected,
   deleteRequest,
 }) => {
   const dispatch: AppDispatch = useDispatch();
   const [{ data }, getRequestById] = useRequestByIdQuery({
-    requestPolicy: 'network-only',
     pause: true,
     variables: {
       requestId,
@@ -51,7 +52,11 @@ const RequestListItem: React.FC<RequestListItemProps> = ({
 
   const changeSelectedRequest = async () => {
     dispatch(requestDataAction.setLoading({ loading: true }));
-    await getRequestById();
+    dispatch(requestDataAction.clearRequestData());
+    await getRequestById({ requestPolicy: 'network-only' });
+  };
+
+  useEffect(() => {
     if (data?.requestById.errors) {
       toast({
         title: 'Ooops!',
@@ -61,11 +66,11 @@ const RequestListItem: React.FC<RequestListItemProps> = ({
         isClosable: true,
       });
     } else {
+      dispatch(requestDataAction.setLoading({ loading: false }));
       const headersInfo = data?.requestById.request?.headers?.map((header) => ({
         name: header.name,
         value: header.value,
       }));
-
       dispatch(
         requestDataAction.setRequestData({
           ...data?.requestById.request,
@@ -73,14 +78,14 @@ const RequestListItem: React.FC<RequestListItemProps> = ({
         }),
       );
     }
-    dispatch(requestDataAction.setLoading({ loading: false }));
-  };
+  }, [data, dispatch, toast]);
 
   return (
     <Flex
       p={1}
       borderRadius={'10px'}
       _hover={{ bg: '#EDF2F7' }}
+      bg={selected ? '#EDF2F7' : '#FFFFFF'}
       onClick={() => changeSelectedRequest()}
     >
       <Box color={determineMethodColor(method)}>{method}</Box>

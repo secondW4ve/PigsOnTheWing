@@ -17,6 +17,7 @@ interface ResponseDataProps {
   body: string;
   headers: RequestHeader[];
   status: number | null;
+  statusText: string | null;
   fetching: boolean;
 }
 
@@ -24,11 +25,13 @@ const ResponseData: React.FC<ResponseDataProps> = ({
   body,
   headers,
   status,
+  statusText,
   fetching,
 }) => {
   const [bodyValue, setBodyValue] = useState(body);
   const [headersList, setHeadersList] = useState(headers);
   const [statusValue, setStatusValue] = useState(status);
+  const [statusTextValue, setStatusTextValue] = useState(statusText);
   const [fetchingValue, setFetchingValue] = useState(fetching);
   useEffect(() => {
     setBodyValue(body);
@@ -39,6 +42,9 @@ const ResponseData: React.FC<ResponseDataProps> = ({
   useEffect(() => {
     setStatusValue(status);
   }, [status]);
+  useEffect(() => {
+    setStatusTextValue(statusText);
+  }, [statusText]);
   useEffect(() => {
     setFetchingValue(fetching);
   }, [fetching]);
@@ -58,7 +64,9 @@ const ResponseData: React.FC<ResponseDataProps> = ({
                 <Tab>Headers</Tab>
               </Flex>
               <Box verticalAlign={'center'}>
-                {statusValue ? `Response status: ${statusValue}` : ''}
+                {statusValue
+                  ? `Response status: ${statusValue} (${statusTextValue})`
+                  : ''}
               </Box>
             </Flex>
           </TabList>
@@ -67,7 +75,6 @@ const ResponseData: React.FC<ResponseDataProps> = ({
               <Textarea
                 h={'100%'}
                 resize={'none'}
-                // readOnly={true}
                 value={bodyValue}
                 onChange={() => setBodyValue(bodyValue)}
               ></Textarea>

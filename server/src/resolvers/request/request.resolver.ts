@@ -111,7 +111,7 @@ export class RequestDataResolver {
       };
     }
 
-    const updatedRequest = await this.requestDataService.updateHeaders(
+    const updatedRequest = await this.requestDataService.addHeadersToRequest(
       requestData,
       headers,
     );
@@ -127,8 +127,20 @@ export class RequestDataResolver {
     @Args('requestData') requestData: RequestDataInput,
   ): Promise<RequestDataResponse> {
     try {
+      const request = await this.requestDataService.getById(requestId, true);
+      if (!request) {
+        throw new FieldError(
+          'requestId',
+          ErrorMessages.REQUEST_WITH_ID_DOES_NOT_EXIST,
+        );
+      }
+      await this.headerService.removeRequestHeaders(request);
+      await this.requestDataService.addHeadersToRequest(
+        request,
+        requestData.headers,
+      );
       const updatedRequestData = await this.requestDataService.update(
-        requestId,
+        request,
         requestData,
       );
 
@@ -136,11 +148,11 @@ export class RequestDataResolver {
         request: updatedRequestData,
       };
     } catch (err) {
-      if (err.message === ErrorMessages.REQUEST_WITH_ID_DOES_NOT_EXIST) {
+      if (err instanceof FieldError) {
         return {
           errors: [
             {
-              field: 'requestId',
+              field: err.field,
               message: err.message,
             },
           ],

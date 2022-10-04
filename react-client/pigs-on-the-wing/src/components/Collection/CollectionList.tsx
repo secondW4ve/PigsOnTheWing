@@ -19,6 +19,8 @@ import {
 import { toErrorMap } from '../../helpers/to-error-map';
 import CollectionListItem from './CollectionListItem';
 import CreateModal from '../CreateModal';
+import { useSelector } from 'react-redux';
+import { requestDataSelector } from '../../redux/slices/request-data.slice';
 
 interface CollectionListProps {}
 
@@ -35,6 +37,14 @@ const CollectionList: React.FC<CollectionListProps> = ({}) => {
   const refreshCollectionList = useCallback(async () => {
     await getUserCollections();
   }, [getUserCollections]);
+
+  const selectedRequest = useSelector(requestDataSelector);
+  const [selectedRequestId, setSelectedRequestId] = useState(
+    selectedRequest.id,
+  );
+  useEffect(() => {
+    setSelectedRequestId(selectedRequest.id);
+  }, [selectedRequest.id]);
 
   return (
     <Box>
@@ -95,6 +105,7 @@ const CollectionList: React.FC<CollectionListProps> = ({}) => {
           {data?.userCollections.map((collection) => (
             <CollectionListItem
               key={collection.id}
+              selectedRequestId={selectedRequestId}
               collectionId={collection.id}
               collectionName={collection.name}
               refreshCollectionList={refreshCollectionList}

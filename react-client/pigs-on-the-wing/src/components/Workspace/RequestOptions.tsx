@@ -11,8 +11,9 @@ import {
   TabPanels,
   Tabs,
   Textarea,
+  useToast,
 } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useDispatch } from 'react-redux';
 import { RequestMethods } from '../../generated/graphql';
 import { toHeadersArray } from '../../helpers/headers-array-to-object';
@@ -22,45 +23,38 @@ import { restCallService } from '../../services/rest-calls.service';
 
 interface RequestOptionsProps {
   method: RequestMethods;
+  setMethod: React.Dispatch<React.SetStateAction<RequestMethods>>;
   url: string;
-  body?: string;
+  setUrl: React.Dispatch<React.SetStateAction<string>>;
+  body: string;
+  setBody: React.Dispatch<React.SetStateAction<string>>;
   headers: RequestHeader[];
+  setHeaders: React.Dispatch<React.SetStateAction<RequestHeader[]>>;
 }
 
 const RequestOptions: React.FC<RequestOptionsProps> = ({
   method,
+  setMethod,
   url,
+  setUrl,
   headers,
+  setHeaders,
   body,
+  setBody,
 }) => {
-  const [methodValue, setMethodValue] = useState(method);
-  const [urlValue, setUrlValue] = useState(url);
-  const [headersList, setHeadersList] = useState(headers);
-  const [bodyValue, setBodyValue] = useState(body || '');
-  useEffect(() => {
-    setMethodValue(method);
-  }, [method]);
-  useEffect(() => {
-    setUrlValue(url);
-  }, [url]);
-  useEffect(() => {
-    setHeadersList(headers);
-  }, [headers]);
-  useEffect(() => {
-    setBodyValue(body || '');
-  }, [body]);
   const dispatch = useDispatch();
+  const toast = useToast();
 
   const updateHeader = (index: number, prop: string, newValue: string) => {
-    const header: any = headersList[index];
+    const header: any = headers[index];
     header[prop] = newValue;
-    setHeadersList((headers) => {
+    setHeaders((headers) => {
       headers.splice(index, 1, header);
       return [...headers];
     });
   };
   const deleteHeader = (index: number) => {
-    setHeadersList((headers) => {
+    setHeaders((headers) => {
       headers.splice(index, 1);
 
       return [...headers];
@@ -69,26 +63,35 @@ const RequestOptions: React.FC<RequestOptionsProps> = ({
 
   const performRequest = async () => {
     dispatch(responseDataActions.setFetching({ fetching: true }));
-    const response = await restCallService.doCall(
-      methodValue,
-      urlValue,
-      headersList,
-      bodyValue,
-    );
+    dispatch(responseDataActions.clearResponseData());
 
-    dispatch(
-      responseDataActions.setBody({
-        body: JSON.stringify(response.data, null, 4),
-      }),
-    );
-    dispatch(responseDataActions.setStatus({ status: response.status }));
-    dispatch(
-      responseDataActions.setHeaders({
-        headers: toHeadersArray(response.headers),
-      }),
-    );
-    dispatch(responseDataActions.setFetching({ fetching: false }));
-    console.log(response);
+    try {
+      const result = await restCallService.doCall(method, url, headers, body);
+
+      dispatch(
+        responseDataActions.setBody({
+          body: JSON.stringify(result.data, null, 4),
+        }),
+      );
+      dispatch(responseDataActions.setStatus({ status: result.status }));
+      dispatch(
+        responseDataActions.setStatusText({ statusText: result.statusText }),
+      );
+      dispatch(
+        responseDataActions.setHeaders({
+          headers: toHeadersArray(result.headers),
+        }),
+      );
+      dispatch(responseDataActions.setFetching({ fetching: false }));
+    } catch (err: any) {
+      toast({
+        title: 'Ooops!',
+        description: err.message || 'Request failed by me, sorry :(',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -96,11 +99,9 @@ const RequestOptions: React.FC<RequestOptionsProps> = ({
       <Flex>
         <Select
           width={'135px'}
-          value={methodValue}
+          value={method}
           variant={'filled'}
-          onChange={(event) =>
-            setMethodValue(event.target.value as RequestMethods)
-          }
+          onChange={(event) => setMethod(event.target.value as RequestMethods)}
         >
           {Object.values(RequestMethods).map((method) => (
             <option key={method} value={method}>
@@ -110,8 +111,8 @@ const RequestOptions: React.FC<RequestOptionsProps> = ({
         </Select>
         <Input
           placeholder="http://localhost:8000"
-          value={urlValue}
-          onChange={(event) => setUrlValue(event.target.value)}
+          value={url}
+          onChange={(event) => setUrl(event.target.value)}
           mr={2}
           ml={2}
         />
@@ -133,8 +134,8 @@ const RequestOptions: React.FC<RequestOptionsProps> = ({
         >
           <TabPanel>
             <Flex direction={'column'}>
-              {headersList
-                ? headersList.map((header, index) => (
+              {headers
+                ? headers.map((header, index) => (
                     <Flex key={index}>
                       <Input
                         key={`name-${index}`}
@@ -165,7 +166,7 @@ const RequestOptions: React.FC<RequestOptionsProps> = ({
                 ml={'auto'}
                 mt={2}
                 onClick={() =>
-                  setHeadersList((headersList) => [
+                  setHeaders((headersList) => [
                     ...headersList,
                     { name: '', value: '' },
                   ])
@@ -179,8 +180,8 @@ const RequestOptions: React.FC<RequestOptionsProps> = ({
             <Textarea
               h={'100%'}
               resize={'none'}
-              value={bodyValue}
-              onChange={(event) => setBodyValue(event.target.value)}
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
             />
           </TabPanel>
         </TabPanels>

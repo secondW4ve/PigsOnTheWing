@@ -171,7 +171,7 @@ export type RequestData = {
 export type RequestDataInput = {
   body?: InputMaybe<Scalars['String']>;
   description?: InputMaybe<Scalars['String']>;
-  headers?: InputMaybe<Array<HeaderInput>>;
+  headers: Array<HeaderInput>;
   method: RequestMethods;
   name: Scalars['String'];
   url: Scalars['String'];
@@ -277,6 +277,14 @@ export type RemoveUserFromCollectionMutationVariables = Exact<{
 
 
 export type RemoveUserFromCollectionMutation = { __typename?: 'Mutation', removeUserFromCollection: { __typename?: 'CollectionResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, collection?: { __typename?: 'Collection', id: string, name: string } | null } };
+
+export type UpdateRequestMutationVariables = Exact<{
+  requestId: Scalars['String'];
+  requestData: RequestDataInput;
+}>;
+
+
+export type UpdateRequestMutation = { __typename?: 'Mutation', updateRequest: { __typename?: 'RequestDataResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, request?: { __typename?: 'RequestData', id: string, name: string, description: string, method: RequestMethods, url: string, body?: string | null, headers?: Array<{ __typename?: 'Header', name: string, value: string }> | null } | null } };
 
 export type CollectionRequestsQueryVariables = Exact<{
   collectionId: Scalars['String'];
@@ -461,6 +469,31 @@ export const RemoveUserFromCollectionDocument = gql`
 
 export function useRemoveUserFromCollectionMutation() {
   return Urql.useMutation<RemoveUserFromCollectionMutation, RemoveUserFromCollectionMutationVariables>(RemoveUserFromCollectionDocument);
+};
+export const UpdateRequestDocument = gql`
+    mutation UpdateRequest($requestId: String!, $requestData: RequestDataInput!) {
+  updateRequest(requestId: $requestId, requestData: $requestData) {
+    errors {
+      ...ErrorInfo
+    }
+    request {
+      id
+      name
+      description
+      method
+      url
+      body
+      headers {
+        name
+        value
+      }
+    }
+  }
+}
+    ${ErrorInfoFragmentDoc}`;
+
+export function useUpdateRequestMutation() {
+  return Urql.useMutation<UpdateRequestMutation, UpdateRequestMutationVariables>(UpdateRequestDocument);
 };
 export const CollectionRequestsDocument = gql`
     query CollectionRequests($collectionId: String!) {

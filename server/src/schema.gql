@@ -100,7 +100,7 @@ input RequestDataInput {
   method: RequestMethods!
   url: String!
   body: String
-  headers: [HeaderInput!]
+  headers: [HeaderInput!]!
 }
 
 input HeaderInput {

@@ -21,7 +21,7 @@ export class RequestDataInput {
   @Field(() => String, { nullable: true })
   body?: string;
 
-  @Field(() => [HeaderInput], { nullable: true })
+  @Field(() => [HeaderInput])
   headers: HeaderInput[];
 }
 

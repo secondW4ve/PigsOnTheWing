@@ -34,12 +34,14 @@ import CollectionUsersModal from './CollectionUsersModal';
 interface CollectionListItemProps {
   collectionName: string;
   collectionId: string;
+  selectedRequestId: string | null;
   refreshCollectionList: () => Promise<void>;
 }
 
 export const CollectionListItem: React.FC<CollectionListItemProps> = ({
   collectionName,
   collectionId,
+  selectedRequestId,
   refreshCollectionList,
 }) => {
   const [{ data, fetching }, getCollectionRequests] =
@@ -215,6 +217,7 @@ export const CollectionListItem: React.FC<CollectionListItemProps> = ({
               {data?.collectionById.collection?.requests.map((req) => (
                 <RequestListItem
                   key={req.id}
+                  selected={selectedRequestId === req.id}
                   requestId={req.id}
                   name={req.name}
                   method={req.method}
