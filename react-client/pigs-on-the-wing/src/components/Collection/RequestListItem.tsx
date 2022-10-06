@@ -57,6 +57,9 @@ const RequestListItem: React.FC<RequestListItemProps> = ({
   };
 
   useEffect(() => {
+    if (!data) {
+      return;
+    }
     if (data?.requestById.errors) {
       toast({
         title: 'Ooops!',

@@ -1,8 +1,8 @@
 import {
+  Box,
   Button,
   Center,
   CircularProgress,
-  FormErrorMessage,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -65,7 +65,7 @@ const SelectCollectionModal: React.FC<SelectCollectionModalProps> = ({
                   </option>
                 ))}
               </Select>
-              {error ? <FormErrorMessage>{error}</FormErrorMessage> : null}
+              {error !== null ? <Box color={'red'}>{error}</Box> : null}
             </>
           )}
         </ModalBody>
